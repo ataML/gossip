@@ -1,0 +1,67 @@
+# network size
+SIZE 1000
+
+# parameters of periodic execution
+CYCLES 100
+CYCLE SIZE
+
+# parameters of message transfer
+# delay values here are relative to cycle length, in percentage,
+# eg 50 means half the cycle length, 200 twice the cycle length, etc.
+MINDELAY 0
+MAXDELAY 0
+# drop is a probability, 0<=DROP<=1
+DROP 0
+
+random.seed 1234567890
+network.size SIZE
+simulation.endtime 15000
+simulation.logtime 1000
+simulation.experiments 100
+################### protocols ===========================
+
+##protocol.link peersim.core.IdleProtocol
+protocol.link peertest.NetworkOverlay
+protocol.link.cycle 1000
+
+protocol.avg peertest.NodeStateHolder
+protocol.avg.linkable link
+protocol.avg.step CYCLE
+protocol.avg.transport tr
+protocol.avg.overlay link
+
+protocol.urt UniformRandomTransport
+protocol.urt.mindelay (CYCLE*MINDELAY)/100
+protocol.urt.maxdelay (CYCLE*MAXDELAY)/100
+
+protocol.tr UnreliableTransport
+protocol.tr.transport urt
+protocol.tr.drop DROP
+
+################### initialization ======================
+
+##init.sw WireScaleFreeDM
+##init.sw.k 2
+##init.sw.protocol link
+##init.rndlink WireKOut
+##init.rndlink.k 2
+##init.rndlink.protocol link
+init.net peertest.GenerateModularNetwork
+init.net.beta 0.2
+init.net.cluster_size 100
+init.net.k 4
+init.net.overlay_protocol link
+
+init.xnet peertest.InfectionInit
+init.xnet.protocol avg
+
+
+init.sch CDScheduler
+init.sch.protocol avg
+init.sch.randstart
+################ control ==============================
+
+control.1 peertest.AggregationObserver
+control.1.protocol avg
+control.1.step CYCLE
+
